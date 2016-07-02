@@ -5,7 +5,6 @@ from urlparse import urlparse
 
 
 class WordCount(object):
-
     def __init__(self, uri):
         """
          Initializes the python client with the given uri
@@ -50,11 +49,10 @@ class WordCount(object):
         ssc = context.streaming_ctx
         lines = ssc.socketTextStream('localhost', 8085)
         non_empty_lines = lines.filter(lambda line: line is None or line == "")
-        counts = non_empty_lines.flatMap(lambda line: line.split(' ')) \
-            .map(lambda word: (word, 1)) \
-            .reduceByKey(add)
-        counts.foreachRDD(lambda rdd: rdd.toDF(['word']) \
-                          .write.mode('append') \
+        counts = non_empty_lines.flatMap(lambda line: line.split(' ')).map(
+            lambda word: (word, 1)).reduceByKey(add)
+        counts.foreachRDD(lambda rdd: rdd.toDF(['word'])
+                          .write.mode('append')
                           .json('/Users/manikandan.nagarajan/py_df'))
         ssc.start
         ssc.awaitTerminationOrTimeout(35)
@@ -75,7 +73,8 @@ class WordCount(object):
             rdd = sql_ctx.read.json('/Users/manikandan.nagarajan/py_df')
             rdd.registerTempTable('words')
             result = sql_ctx.sql(
-                'select word, count(word) as word_count from words group by word order by word_count desc limit 1')
+                'select word, count(word) as word_count from words group by '
+                'word order by word_count desc limit 1')
             return result.first
         except:
             print("No data frames are present in the path to the sql context")
